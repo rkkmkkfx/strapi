@@ -341,6 +341,8 @@ export const editContentType = async (
       strapi.log.error(error);
     }
 
+    // TODO @Nico A kind change returns before `content-type.update` is emitted, so listeners of
+    // the event miss this update.
     return updatedContentType;
   }
 
