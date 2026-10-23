@@ -233,6 +233,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => {
           );
 
           // Assign the new stage to entities that had the deleted stage
+          // TODO @Nico `updateEntitiesStage` is not awaited (the callback has no `return`), and it
+          // ignores `trx`, so the move can run after the transaction and its errors are unhandled.
           await async.map(contentTypesToMigrate, (contentTypeUID: any) => {
             this.updateEntitiesStage(contentTypeUID, {
               fromStageId: stage.id,
