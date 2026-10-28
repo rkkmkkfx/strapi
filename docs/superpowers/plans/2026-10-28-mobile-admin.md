@@ -27,23 +27,23 @@
 **Files:** Create layouts/ResponsiveNavigation.tsx and layouts/tests/ResponsiveNavigation.test.tsx under packages/core/admin/admin/src; modify layouts/AppLayout.tsx and content-manager/pages/App.tsx.
 **Interfaces:** ResponsiveNavigation({ children: ReactNode, label: string, id: string }): JSX.Element. Shared mobile navigation close event ensures at most one open panel.
 
-- [ ] Write tests for opening, Escape/close, focus return, background scroll restoration, route change, breakpoint changes and mutually exclusive panels.
-- [ ] Run focused tests and observe missing behavior.
-- [ ] Implement wrapper and wire main and content-manager navigation; set flex child min-width:0 and full available width.
-- [ ] Run focused tests; commit navigation.
+- [x] Write tests for opening, Escape/close, focus return, background scroll restoration, route change, breakpoint changes and mutually exclusive panels.
+- [x] Run focused tests and observe missing behavior.
+- [x] Implement wrapper and wire main and content-manager navigation; set flex child min-width:0 and full available width.
+- [x] Run focused tests; commit navigation.
 
 ### Task 2: List/edit layouts
 
 **Files:** Create content-manager/components/ResponsiveLayouts.tsx; modify content-manager/pages/ListView/ListViewPage.tsx, content-manager/pages/EditView/EditViewPage.tsx and its components/Header.tsx.
 **Interfaces:** Styled wrappers ResponsiveHeaderLayout, ResponsiveActionLayout, ResponsiveContentLayout, ResponsivePagination and ScrollableTable; use existing design-system prop types.
 
-- [ ] Add browser regression coverage for available content width, long titles, wrapping controls, and contained table overflow.
-- [ ] Observe failures against existing layouts.
-- [ ] Implement scoped responsive wrappers, full-width edit columns and wrapping action groups.
-- [ ] Run focused and relevant existing tests, lint/type checks and browser checks; commit layouts.
+- [x] Add browser regression coverage for available content width, long titles, wrapping controls, and contained table overflow.
+- [x] Observe failures against existing layouts.
+- [x] Implement scoped responsive wrappers, full-width edit columns and wrapping action groups.
+- [x] Run focused and relevant existing tests, lint/type checks and browser checks; commit layouts.
 
 ### Task 3: Review and delivery
 
-- [ ] Review complete diff independently, fix material findings and verify.
-- [ ] Record exact checks and environment limitations.
-- [ ] Push feat/mobile-admin and open PR into fork v4 with scope and validation.
+- [x] Review complete diff independently, fix material findings and verify.
+- [x] Record exact checks and environment limitations.
+- [x] Push feat/mobile-admin and open PR into fork v4 with scope and validation.
