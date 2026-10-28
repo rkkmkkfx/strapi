@@ -539,6 +539,8 @@
   "app.page.not.found": "Oops! We can't seem to find the page you're looking for...",
   "app.static.links.cheatsheet": "CheatSheet",
   "app.utils.SelectOption.defaultMessage": " ",
+  "app.navigation.content": "Content types",
+  "app.navigation.main": "Main menu",
   "app.utils.add-filter": "Add filter",
   "app.utils.close-label": "Close",
   "app.utils.defaultMessage": " ",
