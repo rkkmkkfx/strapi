@@ -88,6 +88,7 @@ const Admin = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <AppLayout
+        navigationItems={[...generalSectionLinks, ...pluginsSectionLinks]}
         sideNav={
           <LeftMenu
             generalSectionLinks={generalSectionLinks}

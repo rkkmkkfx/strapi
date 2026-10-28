@@ -149,6 +149,7 @@ const EntityActionsDataCell = ({
 
 interface RootProps {
   children: React.ReactNode;
+  presentation?: 'table' | 'cards';
   onConfirmDelete: (id: Entity.ID) => Promise<void>;
   isConfirmDeleteRowOpen: boolean;
   setIsConfirmDeleteRowOpen: (isOpen: boolean) => void;
@@ -156,6 +157,7 @@ interface RootProps {
 
 const Root = ({
   children,
+  presentation = 'table',
   onConfirmDelete,
   isConfirmDeleteRowOpen,
   setIsConfirmDeleteRowOpen,
@@ -176,8 +178,10 @@ const Root = ({
     }
   };
 
+  const Body = presentation === 'cards' ? React.Fragment : HelperPluginTable.Body;
+
   return (
-    <HelperPluginTable.Body>
+    <Body>
       {children}
       <DialogConfirmDelete
         isConfirmButtonLoading={isLoading}
@@ -185,7 +189,7 @@ const Root = ({
         onToggleDialog={() => setIsConfirmDeleteRowOpen(!isConfirmDeleteRowOpen)}
         isOpen={isConfirmDeleteRowOpen}
       />
-    </HelperPluginTable.Body>
+    </Body>
   );
 };
 

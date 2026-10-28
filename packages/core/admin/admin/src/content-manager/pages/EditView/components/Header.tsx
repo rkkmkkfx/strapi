@@ -7,7 +7,6 @@ import {
   DialogBody,
   DialogFooter,
   Flex,
-  HeaderLayout,
   Typography,
 } from '@strapi/design-system';
 import { Link } from '@strapi/design-system/v2';
@@ -18,6 +17,10 @@ import isEqual from 'lodash/isEqual';
 import { useIntl } from 'react-intl';
 import { NavLink, useHistory } from 'react-router-dom';
 
+import {
+  EditActions,
+  ResponsiveHeaderLayout as HeaderLayout,
+} from '../../../components/ResponsiveLayouts';
 import { getTranslation } from '../../../utils/translations';
 
 interface HeaderProps {
@@ -67,7 +70,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
 
   if (isCreatingEntry && canCreate) {
     primaryAction = (
-      <Flex gap={2}>
+      <EditActions>
         {hasDraftAndPublish && (
           <Button disabled startIcon={<Check />} variant="secondary">
             {formatMessage({ id: 'app.utils.publish', defaultMessage: 'Publish' })}
@@ -79,7 +82,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
             defaultMessage: 'Save',
           })}
         </Button>
-      </Flex>
+      </EditActions>
     );
   }
 
@@ -96,7 +99,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
     const onClick = isPublished ? () => setWarningUnpublish(true) : () => onPublish?.();
 
     primaryAction = (
-      <Flex>
+      <EditActions>
         {shouldShowPublishButton && (
           <Button
             disabled={didChangeData}
@@ -108,7 +111,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
             {formatMessage(pubishButtonLabel)}
           </Button>
         )}
-        <Box paddingLeft={shouldShowPublishButton ? 2 : 0}>
+        <Box>
           <Button disabled={!didChangeData} loading={status === 'submit-pending'} type="submit">
             {formatMessage({
               id: getTranslation('containers.Edit.submit'),
@@ -116,7 +119,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
             })}
           </Button>
         </Box>
-      </Flex>
+      </EditActions>
     );
   }
 
@@ -136,6 +139,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
   return (
     <>
       <HeaderLayout
+        stickyActions
         title={title.toString()}
         primaryAction={primaryAction}
         subtitle={subtitle}
