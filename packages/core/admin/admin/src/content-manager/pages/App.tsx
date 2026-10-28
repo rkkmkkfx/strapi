@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { createSelector } from '@reduxjs/toolkit';
-import { HeaderLayout, Layout, Main } from '@strapi/design-system';
+import { HeaderLayout, Main } from '@strapi/design-system';
 import {
   AnErrorOccurred,
   CheckPagePermissions,
@@ -16,6 +16,7 @@ import { Redirect, Route, Switch, useLocation, useRouteMatch } from 'react-route
 import { DragLayer, DragLayerProps } from '../../components/DragLayer';
 import { RootState } from '../../core/store/configure';
 import { useTypedSelector } from '../../core/store/hooks';
+import { ContentManagerLayout } from '../components/ContentManagerLayout';
 import { CardDragPreview } from '../components/DragPreviews/CardDragPreview';
 import { ComponentDragPreview } from '../components/DragPreviews/ComponentDragPreview';
 import { RelationDragPreview } from '../components/DragPreviews/RelationDragPreview';
@@ -112,7 +113,7 @@ const App = () => {
           defaultMessage: 'Content Manager',
         })}
       />
-      <Layout sideNav={<LeftMenu />}>
+      <ContentManagerLayout sideNav={<LeftMenu />}>
         <DragLayer renderItem={renderDraglayerItem} />
         <ModelsContext.Provider value={{ refetchData }}>
           <Switch>
@@ -142,7 +143,7 @@ const App = () => {
             <Route path="" component={AnErrorOccurred} />
           </Switch>
         </ModelsContext.Provider>
-      </Layout>
+      </ContentManagerLayout>
     </>
   );
 };

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { createSelector } from '@reduxjs/toolkit';
-import { Main, ContentLayout, Grid, GridItem, Flex, Box } from '@strapi/design-system';
+import { Main, Grid, GridItem, Flex, Box } from '@strapi/design-system';
 import {
   CheckPermissions,
   LinkButton,
@@ -26,6 +26,7 @@ import { DynamicZone } from '../../components/DynamicZone/Field';
 import { EditViewDataManagerProvider } from '../../components/EditViewDataManagerProvider/Provider';
 import { FieldComponent } from '../../components/FieldComponent';
 import { Inputs } from '../../components/Inputs';
+import { ResponsiveContentLayout as ContentLayout } from '../../components/ResponsiveLayouts';
 import { useLazyComponents } from '../../hooks/useLazyComponents';
 import {
   generatePermissionsObject,
@@ -176,7 +177,7 @@ const EditViewPage = ({
               <Header allowedActions={allowedActions} />
               <ContentLayout>
                 <Grid gap={4}>
-                  <GridItem col={9} s={12}>
+                  <GridItem col={9} s={12} xs={12} minWidth={0}>
                     <Flex direction="column" alignItems="stretch" gap={6}>
                       {formattedContentTypeLayout.map((row, index) => {
                         if (isDynamicZone(row)) {
@@ -275,7 +276,7 @@ const EditViewPage = ({
                       })}
                     </Flex>
                   </GridItem>
-                  <GridItem col={3} s={12}>
+                  <GridItem col={3} s={12} xs={12} minWidth={0}>
                     <Flex direction="column" alignItems="stretch" gap={2}>
                       <DraftAndPublishBadge />
                       <Box

@@ -4,8 +4,18 @@ import { Box, Flex, SkipToContent } from '@strapi/design-system';
 import { useIntl } from 'react-intl';
 import styled from 'styled-components';
 
+import { ResponsiveNavigation } from './ResponsiveNavigation';
+
 const FlexBox = styled(Box)`
   flex: 1;
+  min-width: 0;
+`;
+
+const Shell = styled(Flex)`
+  @media (max-width: 767px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 interface AppLayoutProps {
@@ -21,10 +31,15 @@ export const AppLayout = ({ children, sideNav }: AppLayoutProps) => {
       <SkipToContent>
         {formatMessage({ id: 'skipToContent', defaultMessage: 'Skip to content' })}
       </SkipToContent>
-      <Flex alignItems="flex-start">
-        {sideNav}
+      <Shell alignItems="flex-start">
+        <ResponsiveNavigation
+          id="main-navigation"
+          label={formatMessage({ id: 'app.navigation.main', defaultMessage: 'Main menu' })}
+        >
+          {sideNav}
+        </ResponsiveNavigation>
         <FlexBox>{children}</FlexBox>
-      </Flex>
+      </Shell>
     </Box>
   );
 };
