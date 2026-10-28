@@ -10,14 +10,43 @@ const Header = styled.header`
   overflow-wrap: anywhere;
 `;
 
+const PrimaryActions = styled(Flex)`
+  button,
+  a {
+    min-height: 2.75rem;
+    text-decoration: none;
+  }
+`;
+
+const StickyActions = styled.div`
+  position: sticky;
+  top: calc(3.5rem + env(safe-area-inset-top, 0px));
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spaces[2]};
+  padding: 0.75rem 1rem;
+  margin-bottom: ${({ theme }) => theme.spaces[4]};
+  background: ${({ theme }) => theme.colors.neutral0};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.neutral150};
+  & > div {
+    flex: 1;
+  }
+  button {
+    min-height: 2.75rem;
+    flex: 1;
+  }
+`;
+
 export const ResponsiveHeaderLayout = ({
   title,
   subtitle,
   navigationAction,
   primaryAction,
   secondaryAction,
+  stickyActions = false,
   ...props
-}: React.ComponentProps<typeof HeaderLayout>) => {
+}: React.ComponentProps<typeof HeaderLayout> & { stickyActions?: boolean }) => {
   const isMobile = useIsMobile();
 
   if (!isMobile) {
@@ -35,27 +64,30 @@ export const ResponsiveHeaderLayout = ({
   }
 
   return (
-    <Header>
-      {navigationAction && <Box paddingBottom={2}>{navigationAction}</Box>}
-      <Flex gap={3} wrap="wrap">
-        <Typography {...props} as="h1" variant="alpha">
-          {title}
-        </Typography>
-        {secondaryAction}
-      </Flex>
-      {typeof subtitle === 'string' ? (
-        <Typography as="p" variant="epsilon" textColor="neutral600">
-          {subtitle}
-        </Typography>
-      ) : (
-        subtitle
-      )}
-      {primaryAction && (
-        <Flex paddingTop={4} gap={2} wrap="wrap">
-          {primaryAction}
+    <>
+      <Header>
+        {navigationAction && <Box paddingBottom={2}>{navigationAction}</Box>}
+        <Flex gap={3} wrap="wrap">
+          <Typography {...props} as="h1" variant="alpha">
+            {title}
+          </Typography>
+          {secondaryAction}
         </Flex>
-      )}
-    </Header>
+        {typeof subtitle === 'string' ? (
+          <Typography as="p" variant="epsilon" textColor="neutral600">
+            {subtitle}
+          </Typography>
+        ) : (
+          subtitle
+        )}
+        {primaryAction && !stickyActions && (
+          <PrimaryActions paddingTop={4} gap={2} wrap="wrap">
+            {primaryAction}
+          </PrimaryActions>
+        )}
+      </Header>
+      {stickyActions && primaryAction && <StickyActions>{primaryAction}</StickyActions>}
+    </>
   );
 };
 
@@ -65,6 +97,11 @@ export const ResponsiveContentLayout = styled.div`
 
   @media (max-width: 767px) {
     padding-inline: ${({ theme }) => theme.spaces[4]};
+    input,
+    textarea,
+    [contenteditable='true'] {
+      scroll-margin-top: 9rem;
+    }
   }
 `;
 
@@ -75,6 +112,12 @@ const Actions = styled(ResponsiveContentLayout)`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spaces[3]};
   padding-bottom: ${({ theme }) => theme.spaces[4]};
+  @media (max-width: 767px) {
+    button {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+    }
+  }
 `;
 
 interface ResponsiveActionLayoutProps {
@@ -130,4 +173,14 @@ export const ScrollableTable = styled.div.attrs({ role: 'region', tabIndex: 0 })
 export const EditActions = styled(Flex)`
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spaces[2]};
+  @media (max-width: 767px) {
+    width: 100%;
+    & > button,
+    & > div {
+      flex: 1;
+    }
+    & > div > button {
+      width: 100%;
+    }
+  }
 `;

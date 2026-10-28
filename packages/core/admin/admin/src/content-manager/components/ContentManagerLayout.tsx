@@ -1,10 +1,9 @@
 import * as React from 'react';
 
 import { Box } from '@strapi/design-system';
-import { useIntl } from 'react-intl';
 import styled from 'styled-components';
 
-import { ResponsiveNavigation } from '../../layouts/ResponsiveNavigation';
+import { useIsMobile } from '../../layouts/ResponsiveNavigation';
 
 const Container = styled.div`
   display: flex;
@@ -25,19 +24,19 @@ const Body = styled(Box)`
 interface ContentManagerLayoutProps {
   sideNav: React.ReactNode;
   children: React.ReactNode;
+  mobileNavigation?: React.ReactNode;
 }
 
-export const ContentManagerLayout = ({ sideNav, children }: ContentManagerLayoutProps) => {
-  const { formatMessage } = useIntl();
+export const ContentManagerLayout = ({
+  sideNav,
+  children,
+  mobileNavigation,
+}: ContentManagerLayoutProps) => {
+  const isMobile = useIsMobile();
 
   return (
     <Container>
-      <ResponsiveNavigation
-        id="content-navigation"
-        label={formatMessage({ id: 'app.navigation.content', defaultMessage: 'Content types' })}
-      >
-        {sideNav}
-      </ResponsiveNavigation>
+      {isMobile ? mobileNavigation : sideNav}
       <Body paddingBottom={10}>{children}</Body>
     </Container>
   );

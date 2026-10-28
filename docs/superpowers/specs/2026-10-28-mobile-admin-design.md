@@ -65,3 +65,21 @@ fork's `v4` branch. Do not merge. The fork's default `develop` branch is not the
 base. Builder chooses component factoring, test fixtures, exact spacing, and
 whether to reuse a suitable existing accessible drawer primitive after inspection.
 Scope any discovered plugin-specific issues to a later delivery.
+
+## Approved UX revision
+
+The user rejected the first presentation as insufficiently polished and approved
+these suggestions with “Do suggestions”: one compact mobile app bar (hamburger,
+section title, profile), one global drawer with expanded labels and backdrop
+close, an inline native content-type picker, mobile content cards emphasizing
+title/status/actions with an optional full table view, distinct list/editor
+screens, and reachable editing actions. Retain existing permission checks,
+filters, sort/query state, clone/delete confirmations and navigation guards.
+
+Implementation choices: use a native select for collection switching; preserve
+actual router guards. Use a sticky editor action strip below the app bar rather
+than a fixed bottom bar so the keyboard cannot cover it. Reserve at least 44px
+for primary touch controls, use existing theme tokens, honor reduced motion,
+and avoid duplicating actions or form fields across breakpoints. WCAG 2.2 AA is
+an evaluation target, not a claim of certification. Screenshots must distinguish
+sample-content component previews from a live Strapi backend.

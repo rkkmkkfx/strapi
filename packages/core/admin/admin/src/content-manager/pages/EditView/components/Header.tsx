@@ -139,6 +139,7 @@ const Header = ({ allowedActions: { canUpdate, canCreate, canPublish } }: Header
   return (
     <>
       <HeaderLayout
+        stickyActions
         title={title.toString()}
         primaryAction={primaryAction}
         subtitle={subtitle}

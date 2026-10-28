@@ -20,6 +20,7 @@ import styled from 'styled-components';
 import { useAuth } from '../features/Auth';
 import { useConfiguration } from '../features/Configuration';
 import { Menu } from '../hooks/useMenu';
+import { useIsMobile } from '../layouts/ResponsiveNavigation';
 
 const LinkUserWrapper = styled(Box)`
   width: ${150 / 16}rem;
@@ -67,6 +68,7 @@ const BadgeIcon = styled(Icon)`
 interface LeftMenuProps extends Pick<Menu, 'generalSectionLinks' | 'pluginsSectionLinks'> {}
 
 const LeftMenu = ({ generalSectionLinks, pluginsSectionLinks }: LeftMenuProps) => {
+  const isMobile = useIsMobile();
   const navUserRef = React.useRef<HTMLDivElement>(null!);
   const [userLinksVisible, setUserLinksVisible] = React.useState(false);
   const {
@@ -109,7 +111,7 @@ const LeftMenu = ({ generalSectionLinks, pluginsSectionLinks }: LeftMenuProps) =
   });
 
   return (
-    <MainNav condensed={condensed}>
+    <MainNav condensed={condensed && !isMobile}>
       <NavBrand
         as={RouterNavLink}
         workplace={formatMessage({
@@ -250,17 +252,19 @@ const LeftMenu = ({ generalSectionLinks, pluginsSectionLinks }: LeftMenuProps) =
           </LinkUserWrapper>
         )}
 
-        <NavCondense onClick={() => setCondensed((s) => !s)}>
-          {condensed
-            ? formatMessage({
-                id: 'app.components.LeftMenu.expand',
-                defaultMessage: 'Expand the navbar',
-              })
-            : formatMessage({
-                id: 'app.components.LeftMenu.collapse',
-                defaultMessage: 'Collapse the navbar',
-              })}
-        </NavCondense>
+        {!isMobile && (
+          <NavCondense onClick={() => setCondensed((s) => !s)}>
+            {condensed
+              ? formatMessage({
+                  id: 'app.components.LeftMenu.expand',
+                  defaultMessage: 'Expand the navbar',
+                })
+              : formatMessage({
+                  id: 'app.components.LeftMenu.collapse',
+                  defaultMessage: 'Collapse the navbar',
+                })}
+          </NavCondense>
+        )}
       </NavFooter>
     </MainNav>
   );

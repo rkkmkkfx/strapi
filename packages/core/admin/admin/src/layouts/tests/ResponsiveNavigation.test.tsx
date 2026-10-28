@@ -10,7 +10,7 @@ import { ThemeProvider } from 'styled-components';
 import { ResponsiveNavigation } from '../ResponsiveNavigation';
 
 const history = createMemoryHistory();
-let resize: (event: { matches: boolean }) => void;
+let mediaListeners: Set<() => void>;
 let mediaQuery: MediaQueryList;
 
 const setup = () =>
@@ -33,12 +33,15 @@ const setup = () =>
 beforeEach(() => {
   history.replace('/');
   document.body.style.overflow = '';
+  mediaListeners = new Set();
   mediaQuery = {
     matches: true,
-    addEventListener: (_: string, listener: typeof resize) => {
-      resize = listener;
+    addEventListener: (_: string, listener: () => void) => {
+      mediaListeners.add(listener);
     },
-    removeEventListener: jest.fn(),
+    removeEventListener: (_: string, listener: () => void) => {
+      mediaListeners.delete(listener);
+    },
   } as unknown as MediaQueryList;
   window.matchMedia = jest.fn().mockReturnValue(mediaQuery);
   // jsdom does not implement the browser's modal dialog API.
@@ -101,10 +104,11 @@ it('shows desktop navigation without a dialog after resizing', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Content types' }));
   act(() => {
     Object.defineProperty(mediaQuery, 'matches', { value: false });
-    resize({ matches: false });
+    mediaListeners.forEach((listener) => listener());
   });
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Articles' })).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Content manager' })).toBeVisible();
   expect(document.body).toHaveStyle({ overflow: '' });
 });
 

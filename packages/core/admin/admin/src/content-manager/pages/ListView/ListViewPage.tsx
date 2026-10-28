@@ -46,7 +46,9 @@ import { InjectionZone } from '../../../components/InjectionZone';
 import { HOOKS } from '../../../constants';
 import { useTypedDispatch, useTypedSelector } from '../../../core/store/hooks';
 import { useEnterprise } from '../../../hooks/useEnterprise';
+import { useIsMobile } from '../../../layouts/ResponsiveNavigation';
 import { useAdminUsers } from '../../../services/users';
+import { MobileContentList } from '../../components/MobileContentList';
 import {
   ResponsiveActionLayout as ActionLayout,
   ResponsiveContentLayout as ContentLayout,
@@ -57,6 +59,7 @@ import {
 import { CREATOR_FIELDS } from '../../constants/attributes';
 import { buildValidGetParams } from '../../utils/api';
 import { FormattedLayouts, ListLayoutRow } from '../../utils/layouts';
+import { getMobileEntryTitle, getMobileSortValue } from '../../utils/mobileList';
 import { generatePermissionsObject } from '../../utils/permissions';
 import { getTranslation } from '../../utils/translations';
 import { getDisplayName } from '../../utils/users';
@@ -116,6 +119,8 @@ const ListViewPage = ({
   layout,
   slug,
 }: ListViewPageProps) => {
+  const isMobile = useIsMobile();
+  const [showTable, setShowTable] = React.useState(false);
   const dispatch = useTypedDispatch();
   const { pagination, isLoading, data } = useTypedSelector(
     (state) => state['content-manager_listView']
@@ -566,6 +571,24 @@ const ListViewPage = ({
       }
     };
 
+  const renderCardTitle = (row: (typeof data)[number]) =>
+    getMobileEntryTitle(row, tableHeaders, contentType.settings.mainField);
+  const cardSortOptions = tableHeaders
+    .filter((header) => header.metadatas.sortable)
+    .flatMap((header) =>
+      (['ASC', 'DESC'] as const).map((direction) => ({
+        value: getMobileSortValue(header, direction),
+        label: formatMessage(
+          {
+            id: direction === 'ASC' ? 'app.list.sort-ascending' : 'app.list.sort-descending',
+            defaultMessage: direction === 'ASC' ? '{field} (ascending)' : '{field} (descending)',
+          },
+          { field: header.metadatas.label }
+        ),
+      }))
+    );
+  const useCards = isMobile && !showTable && !isLoading && data.length > 0;
+
   // Add 1 column for the checkbox and 1 for the actions
   const colCount = tableHeaders.length + 2;
 
@@ -615,6 +638,14 @@ const ListViewPage = ({
           endActions={
             <>
               <InjectionZone area="contentManager.listView.actions" />
+              {isMobile && (
+                <Button variant="tertiary" onClick={() => setShowTable((value) => !value)}>
+                  {formatMessage({
+                    id: showTable ? 'app.list.card-view' : 'app.list.table-view',
+                    defaultMessage: showTable ? 'Card view' : 'Table view',
+                  })}
+                </Button>
+              )}
               <ViewSettingsMenu slug={slug} />
             </>
           }
@@ -651,174 +682,233 @@ const ListViewPage = ({
               <HelperPluginTable.ActionBar>
                 <BulkActionsRenderer />
               </HelperPluginTable.ActionBar>
-              <ScrollableTable aria-label={headerLayoutTitle}>
-                <HelperPluginTable.Content>
-                  <HelperPluginTable.Head>
-                    {/* Bulk action select all checkbox */}
-                    <HelperPluginTable.HeaderCheckboxCell />
-                    {/* Dynamic headers based on fields */}
-                    {tableHeaders.map(({ fieldSchema, key, name, metadatas }) => (
-                      <HelperPluginTable.HeaderCell
-                        key={key}
-                        name={name}
-                        fieldSchemaType={fieldSchema.type}
-                        relationFieldName={metadatas.mainField?.name}
-                        isSortable={metadatas.sortable}
-                        label={metadatas.label}
-                      />
-                    ))}
-                    {/* Visually hidden header for actions */}
-                    <HelperPluginTable.HeaderHiddenActionsCell />
-                  </HelperPluginTable.Head>
-                  {/* Loading content */}
-                  <HelperPluginTable.LoadingBody />
-                  {/* Empty content */}
-                  <HelperPluginTable.EmptyBody
-                    contentType={headerLayoutTitle}
-                    action={
-                      canCreate ? (
-                        <CreateButton
-                          variant="secondary"
-                          hasDraftAndPublish={hasDraftAndPublish}
-                          params={query.plugins ? pluginsQueryParams : ''}
-                        />
-                      ) : null
+              {useCards ? (
+                <Table.Root
+                  presentation="cards"
+                  onConfirmDelete={handleConfirmDeleteData}
+                  isConfirmDeleteRowOpen={isConfirmDeleteRowOpen}
+                  setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
+                >
+                  <MobileContentList
+                    rows={data}
+                    renderTitle={renderCardTitle}
+                    sortOptions={cardSortOptions}
+                    getEntryLink={(row) => ({
+                      pathname: `${pathname}/${row.id}`,
+                      state: { from: pathname },
+                      search: pluginsQueryParams,
+                    })}
+                    onNavigate={() => trackUsage('willEditEntryFromList')}
+                    renderStatus={
+                      hasDraftAndPublish &&
+                      tableHeaders.some((header) => header.name === 'publishedAt')
+                        ? (row) => (
+                            <Status size="S" variant={row.publishedAt ? 'success' : 'secondary'}>
+                              {formatMessage({
+                                id: row.publishedAt
+                                  ? 'content-manager.containers.List.published'
+                                  : 'content-manager.containers.List.draft',
+                                defaultMessage: row.publishedAt ? 'Published' : 'Draft',
+                              })}
+                            </Status>
+                          )
+                        : undefined
+                    }
+                    renderActions={
+                      (canDelete || canPublish) && isBulkable
+                        ? (row, index) => (
+                            <Table.EntityActionsDataCell
+                              rowId={row.id}
+                              index={index}
+                              setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
+                              canCreate={canCreate}
+                              canDelete={canDelete}
+                              handleCloneClick={handleCloneClick}
+                            />
+                          )
+                        : undefined
                     }
                   />
-                  <AutoCloneFailureModal
-                    entryId={clonedEntryId}
-                    onClose={() => setClonedEntryId(null)}
-                    prohibitedFields={prohibitedCloningFields}
-                    pluginQueryParams={pluginsQueryParams}
-                  />
-                  {/* Content */}
-                  <Table.Root
-                    onConfirmDelete={handleConfirmDeleteData}
-                    isConfirmDeleteRowOpen={isConfirmDeleteRowOpen}
-                    setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
-                  >
-                    {data.map((rowData, index) => {
-                      return (
-                        <Tr cursor="pointer" key={rowData.id} onClick={handleRowClick(rowData.id)}>
-                          {/* Bulk action row checkbox */}
-                          <Td>
-                            <Table.CheckboxDataCell rowId={rowData.id} index={index} />
-                          </Td>
-                          {/* Field data */}
-                          {tableHeaders.map(({ key, name, cellFormatter, ...rest }) => {
-                            if (hasDraftAndPublish && name === 'publishedAt') {
-                              return (
-                                <Td key={key}>
-                                  <Status
-                                    width="min-content"
-                                    showBullet={false}
-                                    variant={rowData.publishedAt ? 'success' : 'secondary'}
-                                    size="S"
-                                  >
-                                    <Typography
-                                      fontWeight="bold"
-                                      textColor={`${
-                                        rowData.publishedAt ? 'success' : 'secondary'
-                                      }700`}
+                </Table.Root>
+              ) : (
+                <ScrollableTable aria-label={headerLayoutTitle}>
+                  <HelperPluginTable.Content>
+                    <HelperPluginTable.Head>
+                      {/* Bulk action select all checkbox */}
+                      <HelperPluginTable.HeaderCheckboxCell />
+                      {/* Dynamic headers based on fields */}
+                      {tableHeaders.map(({ fieldSchema, key, name, metadatas }) => (
+                        <HelperPluginTable.HeaderCell
+                          key={key}
+                          name={name}
+                          fieldSchemaType={fieldSchema.type}
+                          relationFieldName={metadatas.mainField?.name}
+                          isSortable={metadatas.sortable}
+                          label={metadatas.label}
+                        />
+                      ))}
+                      {/* Visually hidden header for actions */}
+                      <HelperPluginTable.HeaderHiddenActionsCell />
+                    </HelperPluginTable.Head>
+                    {/* Loading content */}
+                    <HelperPluginTable.LoadingBody />
+                    {/* Empty content */}
+                    <HelperPluginTable.EmptyBody
+                      contentType={headerLayoutTitle}
+                      action={
+                        canCreate ? (
+                          <CreateButton
+                            variant="secondary"
+                            hasDraftAndPublish={hasDraftAndPublish}
+                            params={query.plugins ? pluginsQueryParams : ''}
+                          />
+                        ) : null
+                      }
+                    />
+                    {/* Content */}
+                    <Table.Root
+                      onConfirmDelete={handleConfirmDeleteData}
+                      isConfirmDeleteRowOpen={isConfirmDeleteRowOpen}
+                      setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
+                    >
+                      {data.map((rowData, index) => {
+                        return (
+                          <Tr
+                            cursor="pointer"
+                            key={rowData.id}
+                            onClick={handleRowClick(rowData.id)}
+                          >
+                            {/* Bulk action row checkbox */}
+                            <Td>
+                              <Table.CheckboxDataCell rowId={rowData.id} index={index} />
+                            </Td>
+                            {/* Field data */}
+                            {tableHeaders.map(({ key, name, cellFormatter, ...rest }) => {
+                              if (hasDraftAndPublish && name === 'publishedAt') {
+                                return (
+                                  <Td key={key}>
+                                    <Status
+                                      width="min-content"
+                                      showBullet={false}
+                                      variant={rowData.publishedAt ? 'success' : 'secondary'}
+                                      size="S"
                                     >
-                                      {formatMessage({
-                                        id: getTranslation(
-                                          `containers.List.${
-                                            rowData.publishedAt ? 'published' : 'draft'
-                                          }`
-                                        ),
-                                        defaultMessage: rowData.publishedAt ? 'Published' : 'Draft',
-                                      })}
+                                      <Typography
+                                        fontWeight="bold"
+                                        textColor={`${
+                                          rowData.publishedAt ? 'success' : 'secondary'
+                                        }700`}
+                                      >
+                                        {formatMessage({
+                                          id: getTranslation(
+                                            `containers.List.${
+                                              rowData.publishedAt ? 'published' : 'draft'
+                                            }`
+                                          ),
+                                          defaultMessage: rowData.publishedAt
+                                            ? 'Published'
+                                            : 'Draft',
+                                        })}
+                                      </Typography>
+                                    </Status>
+                                  </Td>
+                                );
+                              }
+
+                              if (hasReviewWorkflows) {
+                                if (name === 'strapi_stage') {
+                                  return (
+                                    <Td key={key}>
+                                      {rowData.strapi_stage ? (
+                                        <ReviewWorkflowsColumns.ReviewWorkflowsStageEE
+                                          color={
+                                            rowData.strapi_stage.color ??
+                                            lightTheme.colors.primary600
+                                          }
+                                          name={rowData.strapi_stage.name}
+                                        />
+                                      ) : (
+                                        <Typography textColor="neutral800">-</Typography>
+                                      )}
+                                    </Td>
+                                  );
+                                }
+                                if (name === 'strapi_assignee') {
+                                  return (
+                                    <Td key={key}>
+                                      {rowData.strapi_assignee ? (
+                                        <ReviewWorkflowsColumns.ReviewWorkflowsAssigneeEE
+                                          user={rowData.strapi_assignee}
+                                        />
+                                      ) : (
+                                        <Typography textColor="neutral800">-</Typography>
+                                      )}
+                                    </Td>
+                                  );
+                                }
+                              }
+
+                              if (['createdBy', 'updatedBy'].includes(name.split('.')[0])) {
+                                // Display the users full name
+                                // Some entries doesn't have a user assigned as creator/updater (ex: entries created through content API)
+                                // In this case, we display a dash
+                                return (
+                                  <Td key={key}>
+                                    <Typography textColor="neutral800">
+                                      {rowData[name.split('.')[0]]
+                                        ? getDisplayName(rowData[name.split('.')[0]], formatMessage)
+                                        : '-'}
                                     </Typography>
-                                  </Status>
-                                </Td>
-                              );
-                            }
-
-                            if (hasReviewWorkflows) {
-                              if (name === 'strapi_stage') {
-                                return (
-                                  <Td key={key}>
-                                    {rowData.strapi_stage ? (
-                                      <ReviewWorkflowsColumns.ReviewWorkflowsStageEE
-                                        color={
-                                          rowData.strapi_stage.color ?? lightTheme.colors.primary600
-                                        }
-                                        name={rowData.strapi_stage.name}
-                                      />
-                                    ) : (
-                                      <Typography textColor="neutral800">-</Typography>
-                                    )}
                                   </Td>
                                 );
                               }
-                              if (name === 'strapi_assignee') {
+
+                              if (typeof cellFormatter === 'function') {
                                 return (
                                   <Td key={key}>
-                                    {rowData.strapi_assignee ? (
-                                      <ReviewWorkflowsColumns.ReviewWorkflowsAssigneeEE
-                                        user={rowData.strapi_assignee}
-                                      />
-                                    ) : (
-                                      <Typography textColor="neutral800">-</Typography>
-                                    )}
+                                    {cellFormatter(rowData, { key, name, ...rest })}
                                   </Td>
                                 );
                               }
-                            }
 
-                            if (['createdBy', 'updatedBy'].includes(name.split('.')[0])) {
-                              // Display the users full name
-                              // Some entries doesn't have a user assigned as creator/updater (ex: entries created through content API)
-                              // In this case, we display a dash
                               return (
                                 <Td key={key}>
-                                  <Typography textColor="neutral800">
-                                    {rowData[name.split('.')[0]]
-                                      ? getDisplayName(rowData[name.split('.')[0]], formatMessage)
-                                      : '-'}
-                                  </Typography>
+                                  <CellContent
+                                    content={rowData[name.split('.')[0]]}
+                                    name={name}
+                                    contentType={layout.contentType}
+                                    rowId={rowData.id}
+                                    {...rest}
+                                  />
                                 </Td>
                               );
-                            }
-
-                            if (typeof cellFormatter === 'function') {
-                              return (
-                                <Td key={key}>{cellFormatter(rowData, { key, name, ...rest })}</Td>
-                              );
-                            }
-
-                            return (
-                              <Td key={key}>
-                                <CellContent
-                                  content={rowData[name.split('.')[0]]}
-                                  name={name}
-                                  contentType={layout.contentType}
+                            })}
+                            {/* Actions: edit, duplicate, delete */}
+                            {(canDelete || canPublish) && isBulkable && (
+                              <Td>
+                                <Table.EntityActionsDataCell
                                   rowId={rowData.id}
-                                  {...rest}
+                                  index={index}
+                                  setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
+                                  canCreate={canCreate}
+                                  canDelete={canDelete}
+                                  handleCloneClick={handleCloneClick}
                                 />
                               </Td>
-                            );
-                          })}
-                          {/* Actions: edit, duplicate, delete */}
-                          {(canDelete || canPublish) && isBulkable && (
-                            <Td>
-                              <Table.EntityActionsDataCell
-                                rowId={rowData.id}
-                                index={index}
-                                setIsConfirmDeleteRowOpen={setIsConfirmDeleteRowOpen}
-                                canCreate={canCreate}
-                                canDelete={canDelete}
-                                handleCloneClick={handleCloneClick}
-                              />
-                            </Td>
-                          )}
-                        </Tr>
-                      );
-                    })}
-                  </Table.Root>
-                </HelperPluginTable.Content>
-              </ScrollableTable>
+                            )}
+                          </Tr>
+                        );
+                      })}
+                    </Table.Root>
+                  </HelperPluginTable.Content>
+                </ScrollableTable>
+              )}
+              <AutoCloneFailureModal
+                entryId={clonedEntryId}
+                onClose={() => setClonedEntryId(null)}
+                prohibitedFields={prohibitedCloningFields}
+                pluginQueryParams={pluginsQueryParams}
+              />
             </HelperPluginTable.Root>
             <ResponsivePagination>
               <PageSizeURLQuery trackedEvent="willChangeNumberOfEntriesPerPage" />

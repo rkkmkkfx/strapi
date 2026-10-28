@@ -17,6 +17,7 @@ import { DragLayer, DragLayerProps } from '../../components/DragLayer';
 import { RootState } from '../../core/store/configure';
 import { useTypedSelector } from '../../core/store/hooks';
 import { ContentManagerLayout } from '../components/ContentManagerLayout';
+import { ContentTypeSelector } from '../components/ContentTypeSelector';
 import { CardDragPreview } from '../components/DragPreviews/CardDragPreview';
 import { ComponentDragPreview } from '../components/DragPreviews/ComponentDragPreview';
 import { RelationDragPreview } from '../components/DragPreviews/RelationDragPreview';
@@ -113,7 +114,15 @@ const App = () => {
           defaultMessage: 'Content Manager',
         })}
       />
-      <ContentManagerLayout sideNav={<LeftMenu />}>
+      <ContentManagerLayout
+        sideNav={<LeftMenu />}
+        mobileNavigation={
+          <ContentTypeSelector
+            collectionTypes={collectionTypeLinks}
+            singleTypes={singleTypeLinks}
+          />
+        }
+      >
         <DragLayer renderItem={renderDraglayerItem} />
         <ModelsContext.Provider value={{ refetchData }}>
           <Switch>
